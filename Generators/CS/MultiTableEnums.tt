@@ -1,0 +1,97 @@
+﻿﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension="generated.cs" #>
+<#@ Assembly Name="EnvDTE" #>
+<#@ Assembly Name="System.Linq" #>
+<#@ Assembly Name="System.Data" #>
+<#@ import namespace="EnvDTE" #>
+<#@ import namespace="System.Data" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Data.SqlClient" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#
+    /*
+        The generator assumes an existence of the following tables or views:
+        DictionaryHeader (
+            Number int not null,
+            Name nvarchar(255) not null,
+            Description nvarchar(4000) not null,
+            IsFlags bit not null
+        )
+        DictionaryItem (
+            ID int not null,
+            DictionaryNumber int not null,
+            StringValue nvarchar(100) not null,
+            Description nvarchar(255) not null
+        )
+    */
+
+    string server = "corp.forexstars.com";
+    string dbName = "FSNext"; 
+    string dbUser = "developer";
+    string userPassword = "t50C634GF455Q72b1r4i";
+    
+    string schemaName = "CMS";
+#>
+<#
+    string fileName = Path.GetFileNameWithoutExtension(Host.TemplateFile);
+    string path = Path.GetDirectoryName(Host.TemplateFile);
+    string connectionString = String.Format("data source={0};initial catalog={1};persist security info=True;user id={2};password={3};" , server, dbName, dbUser, userPassword);
+
+	// Get containing project
+	IServiceProvider serviceProvider = (IServiceProvider)Host;
+	DTE dte = (DTE)serviceProvider.GetService(typeof(DTE));
+	Project project = dte.Solution.FindProjectItem(Host.TemplateFile).ContainingProject;
+#>
+using System;
+using System.ComponentModel;
+
+namespace <#= project.Properties.Item("DefaultNamespace").Value #><#= Path.GetDirectoryName(Host.TemplateFile).Remove(0, Path.GetDirectoryName(project.FileName).Length).Replace("\\", ".") #>
+{
+<#
+    using(var conn1 = new SqlConnection(connectionString))
+    {
+        conn1.Open();    
+
+        var headerCommand = string.Format("select Number, Name, IsFlags from {0}.DictionaryHeader order by 1", schemaName);
+        var headerComm = new SqlCommand(headerCommand, conn1);
+        var headerReader = headerComm.ExecuteReader();
+    
+        while(headerReader.Read())
+        {
+            var dicNumber = Int32.Parse(headerReader["Number"].ToString());
+            var dicName = headerReader["Name"].ToString();
+            var isFlags = Boolean.Parse(headerReader["IsFlags"].ToString());
+
+            if(isFlags)
+                WriteLine("\t[Flags()]");
+#>
+    public enum <#=dicName #>
+    {
+<#
+        using(var conn2 = new SqlConnection(connectionString))
+        {
+            conn2.Open();
+
+            var itemCommand = string.Format("select ID, StringValue, Description from {0}.DictionaryItem where DictionaryNumber = {1} order by 1", schemaName, dicNumber);
+            var itemsComm =  new SqlCommand(itemCommand, conn2);
+            var itemReader = itemsComm.ExecuteReader();
+    
+            while(itemReader.Read())
+            {
+                var itemID = Int32.Parse(itemReader["ID"].ToString());
+                var itemName = itemReader["StringValue"].ToString();
+                var itemDescription = itemReader["Description"].ToString();
+            
+                WriteLine("\t\t[Description(\"{0}\")]", itemName);
+                WriteLine("\t\t{0} = {1},", itemName, itemID);
+            };
+        };
+#>
+    }
+<#
+        };
+    };
+#>     
+}
