@@ -1,0 +1,154 @@
+﻿<#@ template language="C#" debug="true" hostspecific="true" #>
+<#@ output extension=".js" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="Microsoft.VisualStudio.Shell.Interop.8.0" #>
+<#@ assembly name="EnvDTE" #>
+<#@ assembly name="EnvDTE80" #>
+<#@ assembly name="VSLangProj" #>
+<#@ assembly name="System.Xml" #>
+<#@ assembly name="System.Windows.Forms" #>
+<#@ import namespace="System.Xml" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Resources" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Microsoft.VisualStudio.Shell.Interop" #>
+<#@ import namespace="EnvDTE" #>
+<#@ import namespace="EnvDTE80" #>
+<#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
+<#
+
+
+    /* List of resources to be generated */
+    /* Path to the enum must be set according to the next pattern: */
+    /* {Project name}\{Folder that directly resource resx-file}\{Resource name}*/
+    /* To generate enums just save changes or perform rmb click on the file and select "Run Custom Tool" */
+    string[] _resources = { @"HPB.Common\Resources\Enums",
+                            @"HPB.Web\Resources\Client"
+                          };                  
+    string _defaultCulture = "RU";
+
+#>
+/* Enums.js */
+/* This file is auto-generated. DO NOT CHANGE */
+ 
+var HPB = HPB || {};
+
+HPB.Resources = function() { return HPB.Resources[HPB.CurrentLanguage]; };
+HPB.Resources.Current = HPB.Resources();
+
+<#
+    foreach(var itm in _resources)
+    {
+        var path = itm.Split('\\');
+        var project = path[0];
+        var folder = path[1];
+        var resource = path[2];
+        Prepare(project);
+        foreach(ProjectItem pi in FindProjectItemsIn(CurrentProject.ProjectItems.Item(folder))) 
+        {
+            var fileName = pi.Name;
+            if(fileName.StartsWith(resource))
+            {
+                DumpResourcesFrom(pi, _defaultCulture);
+            };
+        }
+
+    };
+#>
+
+<#+
+    static TextTransformation TT;
+    static DTE Dte;
+    static Project CurrentProject;
+
+    IList<ProjectItem> FindProjectItemsIn(ProjectItem start) {
+	    var list = new List<ProjectItem>();
+	    FindProjectItemsIn(start, list);
+	    return list;
+    }
+ 
+    static bool IsFolder(ProjectItem item) {
+        return (item.Kind == Constants.vsProjectItemKindPhysicalFolder);
+    }
+ 
+    void FindProjectItemsIn(ProjectItem start, IList<ProjectItem> list) {
+	    foreach(ProjectItem item in start.ProjectItems) {
+		    if(IsFolder(item)) {
+			    FindProjectItemsIn(item, list);
+			    continue;
+		    }
+		    list.Add(item);
+	    }
+    }
+ 
+    void DumpResourcesFrom(ProjectItem file, string defaultCulture) {
+        var fileName = (string)file.Properties.Item("FullPath").Value;
+
+        var resource = file.Name.Substring(0, file.Name.IndexOf('.'));
+
+        var culturreMatch = System.Text.RegularExpressions.Regex.Match(file.Name, @".\w{2}-\w{2}.");
+        var culture = culturreMatch.Success ? culturreMatch.Value.Substring(1, 2).ToUpper() : defaultCulture;
+
+        WriteLine("HPB.Resources.{0} = HPB.Resources.{0} || {{}};", culture);
+
+        WriteLine("HPB.Resources.{0}.{1} = {{", culture, resource);
+
+        var resxSet= (ResXResourceSet)null;
+
+        if(File.Exists(fileName))
+        {
+            resxSet = new ResXResourceSet(fileName);
+            foreach (DictionaryEntry itm in resxSet)
+            {
+                WriteLine("\t{0} : '{1}',", itm.Key, itm.Value);
+            };
+        };        
+        WriteLine("};");
+ 
+    }
+ 
+    void Prepare(string project) {
+	    TT = this;
+        // Get the DTE service from the host
+        var serviceProvider = Host as IServiceProvider;
+        if (serviceProvider != null) {
+            Dte = serviceProvider.GetService(typeof(SDTE)) as DTE;
+        }
+     
+	    CurrentProject = FindProjectByName(project);
+    }
+ 
+    private void FindEnum(CodeElements elements, IList<CodeEnum> enums)
+    {
+	    foreach (CodeElement element in elements)
+	    {
+		    CodeEnum enumeration = element as CodeEnum;
+		    if (enumeration != null) enums.Add(enumeration);
+		    FindEnum(element.Children, enums);
+	    }	
+    }
+ 
+    public static ProjectItem FindProjectItem(string fileName)
+    {
+        if (fileName == null) throw new ArgumentNullException("fileName");
+        return Dte.Solution.FindProjectItem(fileName);
+    }
+
+    public static Project FindProjectByName(string name)
+    {
+        Project result = null;
+        foreach (Project project in Dte.Solution)
+        {
+            if(project.Name == name) 
+            {
+                result = project;
+                break;
+            };
+        }
+        return result;
+    }
+
+ 
+#>
+

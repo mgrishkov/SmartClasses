@@ -1,0 +1,190 @@
+﻿<#@ template language="C#" debug="true" hostspecific="true" #>
+<#@ output extension=".js" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="Microsoft.VisualStudio.Shell.Interop.8.0" #>
+<#@ assembly name="EnvDTE" #>
+<#@ assembly name="EnvDTE80" #>
+<#@ assembly name="VSLangProj" #>
+<#@ assembly name="System.Xml" #>
+<#@ import namespace="System.Xml" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Microsoft.VisualStudio.Shell.Interop" #>
+<#@ import namespace="EnvDTE" #>
+<#@ import namespace="EnvDTE80" #>
+<#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
+<#
+
+
+    /* List of enums to be generated */
+    /* Path to the enum must be set according to the next pattern: */
+    /* {Project name}\{Folder that directly contains cs-file}\{File name}.cs */
+    /* To generate enums just save changes or perform rmb click on the file and select "Run Custom Tool" */
+    string[] _enums = { @"HPB.Common\Enums\FormMode.cs",
+                        @"HPB.Common\Enums\DialogButton.cs",
+                        @"HPB.Common\Enums\NotificationType.cs" };         
+
+#>
+/* Enums.js */
+/* This file is auto-generated. DO NOT CHANGE */
+ 
+var HPB = HPB || {};
+
+HPB.Enums = HPB.Enums || {};
+
+HPB.Enums.GetByValue = function(object, value) {
+    for( var prop in object ) {
+        if (object.hasOwnProperty(prop)) {
+            if (object[prop] === value)
+                return prop;
+        }
+    }
+}
+
+<#
+    foreach(var itm in _enums)
+    {
+        var path = itm.Split('\\');
+        var project = path[0];
+        var folder = path[1];
+        var file = path[2];
+        Prepare(project);
+        foreach(ProjectItem pi in FindProjectItemsIn(CurrentProject.ProjectItems.Item(folder))) 
+        {
+            var fileName = pi.Name;
+            if(fileName == file)
+            {
+                DumpEnumerationsFrom(pi);
+                };
+            }
+
+        };
+#>
+
+<#+
+    static TextTransformation TT;
+    static DTE Dte;
+    static Project CurrentProject;
+
+    IList<ProjectItem> FindProjectItemsIn(ProjectItem start) {
+	    var list = new List<ProjectItem>();
+	    FindProjectItemsIn(start, list);
+	    return list;
+    }
+ 
+    static bool IsFolder(ProjectItem item) {
+        return (item.Kind == Constants.vsProjectItemKindPhysicalFolder);
+    }
+ 
+    void FindProjectItemsIn(ProjectItem start, IList<ProjectItem> list) {
+	    foreach(ProjectItem item in start.ProjectItems) {
+		    if(IsFolder(item)) {
+			    FindProjectItemsIn(item, list);
+			    continue;
+		    }
+		    list.Add(item);
+	    }
+    }
+ 
+    void DumpEnumerationsFrom(ProjectItem file) {
+	    var enumerations = new List<CodeEnum>();
+	    FindEnum(file.FileCodeModel.CodeElements, enumerations);
+ 
+	    if(enumerations.Count > 0)
+        {
+            foreach(CodeEnum enumeration in enumerations) 
+            {                
+                // добавляю комментарии, если есть Doc-Type,если нет обычные
+                if(!String.IsNullOrWhiteSpace(enumeration.DocComment))
+                {
+                    var doc = new XmlDocument();
+                    doc.LoadXml(enumeration.DocComment);
+                    var x = doc.SelectSingleNode("/doc/summary");
+
+                    if(x != null && !String.IsNullOrWhiteSpace(x.InnerText))
+                    {
+                        TT.Write("\r\n//{0}", x.InnerText.Replace("\r", String.Empty).Replace("\n", String.Empty));
+                    };
+                }
+                else if(!String.IsNullOrWhiteSpace(enumeration.Comment))
+                {
+                    TT.Write("\r\n\\{0}", enumeration.Comment);
+                };
+                TT.WriteLine("");
+
+                TT.Write("HPB.Enums.{0} = {{", enumeration.Name);
+                var i = 1;
+                foreach(CodeElement ce in enumeration.Children) {
+                    var cv = ce as CodeVariable;
+                    if(cv == null) 
+                        continue;
+                
+                    // добавляю комментарии, если есть Doc-Type,если нет обычные
+                    if(!String.IsNullOrWhiteSpace(cv.DocComment))
+                    {
+                        var doc = new XmlDocument();
+                        doc.LoadXml(cv.DocComment);
+                        var x = doc.SelectSingleNode("/doc/summary");
+
+                        if(x != null && !String.IsNullOrWhiteSpace(x.InnerText))
+                        {
+                            TT.Write("\r\n\t//{0}", x.InnerText.Replace("\r", String.Empty).Replace("\n", String.Empty));
+                            };
+                    }
+                    else if(!String.IsNullOrWhiteSpace(cv.Comment))
+                    {
+                        TT.Write("\r\n\t\\{0}", cv.Comment);
+                    };
+                
+                    TT.Write("\r\n\t{0}: {1}{2}", cv.Name, cv.InitExpression ?? i, i < enumeration.Children.Count ? ",": "");
+                    i++;
+                }
+                TT.WriteLine("\r\n};\r\n");
+            }
+        };
+	
+ 
+    }
+ 
+    void Prepare(string project) {
+	    TT = this;
+        // Get the DTE service from the host
+        var serviceProvider = Host as IServiceProvider;
+        if (serviceProvider != null) {
+            Dte = serviceProvider.GetService(typeof(SDTE)) as DTE;
+        }
+     
+	    CurrentProject = FindProjectByName(project);
+    }
+ 
+    private void FindEnum(CodeElements elements, IList<CodeEnum> enums)
+    {
+	    foreach (CodeElement element in elements)
+	    {
+		    CodeEnum enumeration = element as CodeEnum;
+		    if (enumeration != null) enums.Add(enumeration);
+		    FindEnum(element.Children, enums);
+	    }	
+    }
+ 
+    public static ProjectItem FindProjectItem(string fileName)
+    {
+        if (fileName == null) throw new ArgumentNullException("fileName");
+        return Dte.Solution.FindProjectItem(fileName);
+    }
+
+    public static Project FindProjectByName(string name)
+    {
+        Project result = null;
+        foreach (Project project in Dte.Solution)
+        {
+            if(project.Name == name) 
+            {
+                result = project;
+                break;
+            };
+        }
+        return result;
+    }
+
+ 
+#>
