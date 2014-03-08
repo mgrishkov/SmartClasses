@@ -8,8 +8,8 @@ namespace SmartClasses.Extensions
 {
     public static partial class ExtensionMethods
     {
-        static readonly Hashtable MatchingRu = new Hashtable(34);
-        static readonly Hashtable MatchingEn = new Hashtable(27);
+        private static readonly Hashtable MatchingRu = new Hashtable(34);
+        private static readonly Hashtable MatchingEn = new Hashtable(27);
 
         static ExtensionMethods()
         {
@@ -94,13 +94,6 @@ namespace SmartClasses.Extensions
         /// <returns>True - validated successfuly, False - otherwise.</returns>
         public static Boolean IsValidEmail(this String email)
         {
-            // Email pattern from MSDN
-            // @"^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$";
-
-            // Email pattern from The Official Standard: RFC 2822
-            // @"^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|gov|biz|info|name|aero|biz|info|jobs|museum)$";
-
-            // Email pattern
             const string pattern = @"^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[a-z]{2,6}|[0-9]{1,3})$";
 
             return Regex.IsMatch(email, pattern, RegexOptions.IgnoreCase);
@@ -132,7 +125,9 @@ namespace SmartClasses.Extensions
                         transliterated.Append(value);
                     }
                     else
+                    {
                         transliterated.Append(matchings[text[i]]);
+                    }
                 }
                 else
                 {
@@ -151,13 +146,15 @@ namespace SmartClasses.Extensions
             if (!String.IsNullOrWhiteSpace(value))
             {
                 var md5 = MD5.Create();
-                byte[] passwordBytes = Encoding.ASCII.GetBytes(value);
-                byte[] hash = md5.ComputeHash(passwordBytes);
-                for (int i = 0; i < hash.Length; i++)
+                var passwordBytes = Encoding.ASCII.GetBytes(value);
+                var hash = md5.ComputeHash(passwordBytes);
+                for (var i = 0; i < hash.Length; i++)
                 {
                     sb.Append(hash[i].ToString("X2"));
-                };
-            };
+                }
+                ;
+            }
+            ;
             return sb.ToString();
         }
     }

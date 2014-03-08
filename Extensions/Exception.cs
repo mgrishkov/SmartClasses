@@ -19,7 +19,7 @@ namespace SmartClasses.Extensions
                 inner = inner.InnerException;
             }
 
-            return msg.ToString();            
+            return msg.ToString();
         }
     }
 }

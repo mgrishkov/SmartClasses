@@ -15,63 +15,63 @@ namespace SmartClasses.Extensions
         }
         public static DateTime EndOfMonth(this DateTime sender)
         {
-            int month = sender.Month;
-            int year = sender.Year;
-            int daysInMonth = DateTime.DaysInMonth(sender.Year, month);
+            var month = sender.Month;
+            var year = sender.Year;
+            var daysInMonth = DateTime.DaysInMonth(sender.Year, month);
             return new DateTime(year, month, daysInMonth, 23, 59, 59);
         }
         public static DateTime StartOfMonth(this DateTime sender)
         {
-            int month = sender.Month;
-            int year = sender.Year;
+            var month = sender.Month;
+            var year = sender.Year;
             return new DateTime(year, month, 1, 00, 00, 00);
         }
         public static DateTime EndOfDay(this DateTime sender)
         {
-            int month = sender.Month;
-            int year = sender.Year;
-            int day = sender.Day;
+            var month = sender.Month;
+            var year = sender.Year;
+            var day = sender.Day;
             return new DateTime(year, month, day, 23, 59, 59);
         }
         public static DateTime StartOfDay(this DateTime sender)
         {
-            int month = sender.Month;
-            int year = sender.Year;
-            int day = sender.Day;
+            var month = sender.Month;
+            var year = sender.Year;
+            var day = sender.Day;
             return new DateTime(year, month, day, 00, 00, 00);
         }
         public static DateTime EndOfHour(this DateTime sender)
         {
-            int month = sender.Month;
-            int year = sender.Year;
-            int day = sender.Day;
-            int hour = sender.Hour;
+            var month = sender.Month;
+            var year = sender.Year;
+            var day = sender.Day;
+            var hour = sender.Hour;
             return new DateTime(year, month, day, hour, 59, 59);
         }
         public static DateTime StartOfHour(this DateTime sender)
         {
-            int month = sender.Month;
-            int year = sender.Year;
-            int day = sender.Day;
-            int hour = sender.Hour;
+            var month = sender.Month;
+            var year = sender.Year;
+            var day = sender.Day;
+            var hour = sender.Hour;
             return new DateTime(year, month, day, hour, 00, 00);
         }
         public static DateTime EndOfMinute(this DateTime sender)
         {
-            int month = sender.Month;
-            int year = sender.Year;
-            int day = sender.Day;
-            int hour = sender.Hour;
-            int minute = sender.Minute;
+            var month = sender.Month;
+            var year = sender.Year;
+            var day = sender.Day;
+            var hour = sender.Hour;
+            var minute = sender.Minute;
             return new DateTime(year, month, day, hour, minute, 59);
         }
         public static DateTime StartOfMinute(this DateTime sender)
         {
-            int month = sender.Month;
-            int year = sender.Year;
-            int day = sender.Day;
-            int hour = sender.Hour;
-            int minute = sender.Minute;
+            var month = sender.Month;
+            var year = sender.Year;
+            var day = sender.Day;
+            var hour = sender.Hour;
+            var minute = sender.Minute;
             return new DateTime(year, month, day, hour, minute, 00);
         }
         /// <summary>

@@ -12,14 +12,16 @@ namespace SmartClasses.Utils
 
             var split = fullItemName.Split('.').ToList();
             if (split.Count < 3)
+            {
                 throw new ArgumentException("Item name must have Assmbly Name, Namespace, Class and Item names");
-
+            }
             var length = split.Count;
             var project = String.Join(".", split.GetRange(0, length - 3));
             var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.FullName.Contains(project));
             if (assembly == null)
+            {
                 throw new ArgumentException(String.Format("Assembly {0} does not found", project));
-
+            }
             var resourceClass = String.Join(".", split.GetRange(0, length - 1));
             var resource = new System.Resources.ResourceManager(resourceClass, assembly);
 
@@ -37,10 +39,11 @@ namespace SmartClasses.Utils
                 itemValue = GetStringResource(fullItemName, culture);
                 result = true;
             }
-            catch 
+            catch
             {
                 itemValue = String.Empty;
-            };
+            }
+            ;
             return result;
         }
     }

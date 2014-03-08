@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace SmartClasses.Extensions
 {
     public static partial class ExtensionMethods
     {
-        public static bool IsCompatibilityModeEnabled(this HttpBrowserCapabilitiesBase browser)
+        public static string ToSAPBoolean(this bool s)
         {
-            return (browser.Browser == "IE" && browser.MajorVersion < 9);
+            return (s) ? "X" : " ";
         }
     }
 }

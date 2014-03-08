@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SmartClasses.Utils;
 
 namespace SmartClasses.Extensions
@@ -10,7 +8,7 @@ namespace SmartClasses.Extensions
     public static partial class ExtensionMethods
     {
         public static IEnumerable<Node<T>> Hierarchize<T, TKey, TOrderKey>(
-            this IEnumerable<T> elements,
+        this IEnumerable<T> elements,
             TKey topMostKey,
             Func<T, TKey> keySelector,
             Func<T, TKey> parentKeySelector,
@@ -49,5 +47,4 @@ namespace SmartClasses.Extensions
             }
         }
     }
-    
 }
