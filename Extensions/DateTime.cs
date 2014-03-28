@@ -85,5 +85,11 @@ namespace SmartClasses.Extensions
         {
             return new DateTime(date.Ticks - date.Ticks % roundTicks);
         }
+        public static string ToJSONString(this DateTime date)
+        {
+            var unixDate = new DateTime(1970, 1, 1);
+            var ts = new TimeSpan(date.Ticks - unixDate.Ticks);
+            return String.Format(@"/Date({0})/", (long)ts.TotalMilliseconds);
+        }
     }
 }
