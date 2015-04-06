@@ -64,5 +64,15 @@ namespace SmartClasses.Extensions
             var value = Convert.ChangeType(val, t);
             return (T)value;
         }
+
+        public static string GetStringValue(this Enum val)
+        {
+            var fields = val.GetType().GetField(val.ToString());
+            if (fields == null)
+                return null;
+
+            var attr = (StringValueAttribute[])fields.GetCustomAttributes(typeof(StringValueAttribute), false);
+            return (attr.Length > 0) ? attr[0].Value : string.Empty;
+        }
     }
 }

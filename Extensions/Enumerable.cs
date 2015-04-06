@@ -25,7 +25,7 @@ namespace SmartClasses.Extensions
 
         public static bool IsNullOrEmpty<T>(this IEnumerable<T> source)
         {
-            return source == null || source.Count() == 0;
+            return source == null || !source.Any();
         }
 
         public static IEnumerable<T> Descendants<T>(this IEnumerable<T> source, Func<T, IEnumerable<T>> descendBy)
@@ -45,6 +45,33 @@ namespace SmartClasses.Extensions
                     }
                 }
             }
+        }
+
+        public static IEnumerable<T> Descendants<T, TKey>(
+            this IEnumerable<T> source,
+            TKey startWithKey,
+            Func<T, TKey> keySelector,
+            Func<T, TKey> parentKeySelector)
+        {
+            var elements = source as IList<T> ?? source.ToList();
+
+            var item = elements.SingleOrDefault(x => keySelector(x).Equals(startWithKey));
+            yield return item;
+
+            var children = elements.Where(x =>
+            {
+                var key = parentKeySelector(x);
+                return key == null ? startWithKey == null : key.Equals(startWithKey);
+            }).ToList();
+
+            foreach (var itm in children)
+            {
+                var subDescedants = children.Descendants(keySelector(itm), keySelector, parentKeySelector);
+                foreach (var d in subDescedants)
+                    yield return d;
+                
+            }
+
         }
     }
 }

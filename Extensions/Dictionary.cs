@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.Linq;
 
 namespace SmartClasses.Extensions
 {
@@ -20,7 +19,6 @@ namespace SmartClasses.Extensions
             {
                 s.Add(new KeyValuePair<TKey, TValue>(key, value));
             }
-            ;
         }
 
         /// <summary>
@@ -33,8 +31,7 @@ namespace SmartClasses.Extensions
             if (s.ContainsKey(key))
             {
                 s.Remove(key);
-            }
-            ;
+            };
             return result;
         }
 
@@ -48,8 +45,7 @@ namespace SmartClasses.Extensions
             foreach (var itm in s)
             {
                 eoColl.Add(new KeyValuePair<string, object>(itm.Key, (object)itm.Value));
-            }
-            ;
+            };
             return (dynamic)eo;
         }
 
@@ -62,8 +58,7 @@ namespace SmartClasses.Extensions
             foreach (var itm in items)
             {
                 s.AddOrRepace(itm.Key, itm.Value);
-            }
-            ;
+            };
             return result;
         }
     }

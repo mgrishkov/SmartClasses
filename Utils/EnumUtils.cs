@@ -46,6 +46,24 @@ namespace SmartClasses.Utils
             }
             return result;
         }
+
+        public static IDictionary<int, string> ToStringValueDictionary<T>()
+            where T : struct
+        {
+            var result = new Dictionary<int, string>();
+            var t = typeof(T);
+
+            foreach (var itm in Enum.GetValues(t))
+            {
+                var key = (int)itm;
+                var field = Enum.GetName(t, itm);
+                var attr = (StringValueAttribute[])itm.GetType().GetField(field).GetCustomAttributes(typeof(StringValueAttribute), false);
+                var text = (attr.Length > 0) ? attr[0].Value : string.Empty;
+                result.Add(key, text);
+            }
+            return result;
+        }
+
         /// <summary>
         /// Returns localized text for enum
         /// </summary>
@@ -98,6 +116,23 @@ namespace SmartClasses.Utils
                 result.Add(key, field);
             }
             return result;
+        }
+
+        public static T FindByStringValue<T>(string value)
+            where T : struct
+        {
+            var t = typeof(T);
+
+            foreach (var itm in Enum.GetValues(t))
+            {
+                var field = Enum.GetName(t, itm);
+                var attr = (StringValueAttribute[])itm.GetType().GetField(field).GetCustomAttributes(typeof(StringValueAttribute), false);
+                var text = (attr.Length > 0) ? attr[0].Value : string.Empty;
+
+                if (text == value)
+                    return (T) itm;
+            }
+            return default(T);
         }
     }
 }

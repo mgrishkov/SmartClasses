@@ -13,6 +13,14 @@ namespace SmartClasses.Extensions
         {
             return date.ToString("HH:mm:ss");
         }
+        
+        public static string ToJSONString(this DateTime date)
+        {
+            var unixDate = new DateTime(1970, 1, 1);
+            var ts = new TimeSpan(date.Ticks - unixDate.Ticks);
+            return String.Format(@"/Date({0})/", (long)ts.TotalMilliseconds);
+        }
+
         public static DateTime EndOfMonth(this DateTime sender)
         {
             var month = sender.Month;
@@ -85,11 +93,18 @@ namespace SmartClasses.Extensions
         {
             return new DateTime(date.Ticks - date.Ticks % roundTicks);
         }
-        public static string ToJSONString(this DateTime date)
+        
+        public static Int32 Quarter(this DateTime sender)
         {
-            var unixDate = new DateTime(1970, 1, 1);
-            var ts = new TimeSpan(date.Ticks - unixDate.Ticks);
-            return String.Format(@"/Date({0})/", (long)ts.TotalMilliseconds);
-        }
+            var month = sender.Month;
+            if (month.In(1, 2, 3))
+                return 1;
+            else if (month.In(4, 5, 6))
+                return 2;
+            else if (month.In(7, 8, 9))
+                return 3;
+            else
+                return 4;
+        }        
     }
 }
